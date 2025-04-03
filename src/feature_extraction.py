@@ -1,5 +1,6 @@
 import numpy as np
 import librosa
+import librosa.feature
 
 def feature_extraction(file_path, n_mfcc, n_chroma):
 
@@ -42,6 +43,6 @@ def feature_extraction(file_path, n_mfcc, n_chroma):
             features[f'chroma_{i+1}_var'] = var
 
         return features
-    except:
-        print(f'Error extracting features from {file_path}')
+    except Exception as e:
+        print(f'Error extracting features from {file_path}: {e}')
         return None
