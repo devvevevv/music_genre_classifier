@@ -4,10 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="9a66f100-7eb7-4ea8-b168-05fbed6a06a8" name="Changes" comment="defined function for extracting features (mfcc, chroma, tempo, zcr)">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/feature_extraction.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/feature_extraction.py" afterDir="false" />
-    </list>
+    <list default="true" id="9a66f100-7eb7-4ea8-b168-05fbed6a06a8" name="Changes" comment="defined function for extracting features (mfcc, chroma, tempo, zcr)" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -79,7 +76,7 @@
       <option name="presentableId" value="Default" />
       <updated>1743676374454</updated>
       <workItem from="1743676375500" duration="2785000" />
-      <workItem from="1743686411779" duration="1379000" />
+      <workItem from="1743686411779" duration="1445000" />
     </task>
     <task id="LOCAL-00001" summary="defined function for extracting features (mfcc, chroma, tempo, zcr)">
       <option name="closed" value="true" />
@@ -89,7 +86,15 @@
       <option name="project" value="LOCAL" />
       <updated>1743686828798</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="defined function for extracting features (mfcc, chroma, tempo, zcr)">
+      <option name="closed" value="true" />
+      <created>1743709428775</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1743709428775</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
