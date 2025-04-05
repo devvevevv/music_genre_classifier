@@ -22,19 +22,29 @@ def feature_extraction(file_path, n_mfcc = 13, n_chroma = 12):
         chroma_means = np.mean(chroma, axis = 1)
         chroma_vars = np.var(chroma, axis = 1)
 
-        #tempo in bpm
-        tempo, _ = librosa.beat.beat_track(y = y, sr = sr)
-
         #zero crossing rate (noisiness)
         zcr = librosa.feature.zero_crossing_rate(y = y)
         zcr_mean = np.mean(zcr, axis = 0)
         zcr_var = np.var(zcr, axis = 0)
 
+        #spectral centroid
+        spec_cent = librosa.feature.spectral_centroid(y=y, sr=sr)
+        spec_cent_mean = np.mean(spec_cent)
+        spec_cent_var = np.var(spec_cent)
+
+        #spectral rolloff
+        spec_roll = librosa.feature.spectral_rolloff(y=y, sr=sr)
+        spec_roll_mean = np.mean(spec_roll)
+        spec_roll_var = np.var(spec_roll)
+
         #collecting all features in a dict { feature_name:feature }
         features = {
-            'tempo': tempo,
             'zcr_mean': zcr_mean,
             'zcr_var': zcr_var,
+            'spec_cent_mean': spec_cent_mean,
+            'spec_cent_var': spec_cent_var,
+            'spec_roll_mean': spec_roll_mean,
+            'spec_roll_var': spec_roll_var
         }
 
         for i, (mean, var) in enumerate(zip(mfcc_means, mfcc_vars)):
