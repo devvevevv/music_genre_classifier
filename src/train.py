@@ -17,8 +17,6 @@ def train(dataset_path, model_save_path="model.pkl"):
     y_pred = model.predict(X_test)
     accuracy = accuracy_score(y_test, y_pred)
     print(f"Model accuracy: {accuracy:.3f}")
-    print("\nClassification Report:")
-    print(classification_report(y_test, y_pred))
 
     # Save the model
     with open(model_save_path, 'wb') as file:
@@ -27,3 +25,7 @@ def train(dataset_path, model_save_path="model.pkl"):
 
     return model, accuracy
 
+if __name__ == "__main__":
+    dataset_path = "C:/CS/Projects/music_genre_classifier/Data/genres"
+    model, accuracy = train(dataset_path)
+    print("Model saved to disk")

@@ -24,8 +24,8 @@ def feature_extraction(file_path, n_mfcc = 13, n_chroma = 12):
 
         #zero crossing rate (noisiness)
         zcr = librosa.feature.zero_crossing_rate(y = y)
-        zcr_mean = np.mean(zcr, axis = 0)
-        zcr_var = np.var(zcr, axis = 0)
+        zcr_mean = np.mean(zcr)
+        zcr_var = np.var(zcr)
 
         #spectral centroid
         spec_cent = librosa.feature.spectral_centroid(y=y, sr=sr)
