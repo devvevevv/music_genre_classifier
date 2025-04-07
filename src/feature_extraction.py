@@ -37,6 +37,12 @@ def feature_extraction(file_path, n_mfcc = 13, n_chroma = 12):
         spec_roll_mean = np.mean(spec_roll)
         spec_roll_var = np.var(spec_roll)
 
+        #spectral contrast
+        S = np.abs(librosa.stft(y))
+        spec_contrast = librosa.feature.spectral_contrast(S=S, sr=sr)
+        spec_contrast_mean = np.mean(spec_roll)
+        spec_contrast_var = np.var(spec_roll)
+
         #collecting all features in a dict { feature_name:feature }
         features = {
             'zcr_mean': zcr_mean,
@@ -44,7 +50,9 @@ def feature_extraction(file_path, n_mfcc = 13, n_chroma = 12):
             'spec_cent_mean': spec_cent_mean,
             'spec_cent_var': spec_cent_var,
             'spec_roll_mean': spec_roll_mean,
-            'spec_roll_var': spec_roll_var
+            'spec_roll_var': spec_roll_var,
+            'spec_contrast_mean': spec_contrast_mean,
+            'spec_contrast_var': spec_contrast_var
         }
 
         for i, (mean, var) in enumerate(zip(mfcc_means, mfcc_vars)):
