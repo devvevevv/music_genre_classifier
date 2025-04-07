@@ -26,6 +26,6 @@ def train(dataset_path, model_save_path="model.pkl"):
     return model, accuracy
 
 if __name__ == "__main__":
-    dataset_path = "C:/CS/Projects/music_genre_classifier/Data/genres"
+    dataset_path = "C:/CS/Projects/music_genre_classifier/Data/genres_original"
     model, accuracy = train(dataset_path)
     print("Model saved to disk")
