@@ -1,4 +1,5 @@
 import os
+import librosa
 import pandas as pd
 from feature_extraction import *
 
@@ -12,7 +13,8 @@ def process_data(data_path):
         print(f'Processing genre: {genre}')
         for file_name in os.listdir(genre_path):
             file_path = os.path.join(genre_path, file_name)
-            features = feature_extraction(file_path)
+            y, sr = librosa.load(file_path)
+            features = feature_extraction(y, sr)
             if features is not None:
                 features['genre'] = genre
                 features['file path'] = file_path
