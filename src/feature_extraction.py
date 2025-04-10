@@ -1,13 +1,8 @@
 import numpy as np
 import librosa, librosa.feature
 
-def feature_extraction(file_path, n_mfcc = 13, n_chroma = 12):
+def feature_extraction(y, sr, n_mfcc = 13, n_chroma = 12):
     try:
-        #load audio as a waveform 'y' and store sampling rate in 'sr'
-        y, sr = librosa.load(file_path)
-
-        #extract features
-
         #MFCCs
         mfccs = librosa.feature.mfcc(y = y, sr = sr, n_mfcc = n_mfcc)
         mfcc_means = np.mean(mfccs, axis = 1)
@@ -97,5 +92,5 @@ def feature_extraction(file_path, n_mfcc = 13, n_chroma = 12):
         return features
 
     except Exception as e:
-        print(f'Error extracting features from {file_path}: {e}')
+        print(f'Error extracting features from audio data: {e}')
         return None

@@ -1,5 +1,9 @@
 import os
 from predict import predict
+from chunks import *
+
+import warnings
+warnings.filterwarnings("ignore")
 
 def main():
     print('---Welcome to the music genre classifier---')
@@ -12,7 +16,15 @@ def main():
         return 1
 
     print('---Analyzing audio file---')
-    genre = predict(model_path, file_path)
+    result = analyze_audio_file(model_path, file_path)
+
+    if result is None:
+        print('Error analyzing audio file.')
+        return 1
+
+    print('-------------------------------')
+    print(f'Predicted genre: {result}')
 
 if __name__ == '__main__':
     main()
+
