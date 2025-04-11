@@ -1,5 +1,4 @@
 import os
-from predict import predict
 from chunks import *
 
 import warnings
@@ -22,7 +21,6 @@ def main():
         print('Error analyzing audio file.')
         return 1
 
-    print('-------------------------------')
     print(f'Predicted genre: {result}')
 
 if __name__ == '__main__':

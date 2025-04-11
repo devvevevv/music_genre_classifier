@@ -1,11 +1,16 @@
 import pandas as pd
 import numpy as np
 import librosa
+import pickle
 from feature_extraction import *
-from predict import *
 
 chunk_size = 30
 overlap = 5
+
+def load_model(model_path):
+    with open(model_path, 'rb') as f:
+        model = pickle.load(f)
+        return model
 
 def get_chunk_intervals(file_path):
     try:
