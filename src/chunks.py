@@ -45,11 +45,9 @@ def predict_chunk(model_path, y, sr):
         if features is None:
             print("Feature extraction returned None")
             return None
-        print(f"Extracted {len(features)} features")
         features = pd.DataFrame(features)
         model = load_model(model_path)
         result = model.predict(features)
-        print(f"Chunk prediction: {result[0]}")
         return result[0]
 
     except Exception as e:
@@ -79,8 +77,8 @@ def analyze_audio_file(model_path, file_path):
     total_duration = librosa.get_duration(y=y, sr=sr)
 
     #if file is itself of duration chunk_size, no need to divide it into chunks
-    if total_duration <= chunk_size:
-        return predict(model_path, file_path)
+    if total_duration <= (chunk_size+1):
+        return predict_chunk(model_path, y, sr)
 
     chunk_times = get_chunk_intervals(file_path)
 

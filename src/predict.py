@@ -1,6 +1,7 @@
 import os
 import pickle
 import pandas as pd
+import librosa
 from feature_extraction import *
 
 def load_model(model_path):
@@ -13,13 +14,14 @@ def predict(model_path, file_path):
         print('File does not exist')
         return 1
 
-    features = feature_extraction(file_path)
+    y, sr = librosa.load(file_path)
+    features = feature_extraction(y, sr)
     if features is None:
         print('Error extracting features')
         return 1
 
     model = load_model(model_path)
-    features = pd.DataFrame(features, index = [0])
+    features = pd.DataFrame([features])
     result = model.predict(features)
     print(f'Predicted genre: {result[0]}')
 
