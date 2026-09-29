@@ -2,102 +2,79 @@ import pandas as pd
 import numpy as np
 import librosa
 import pickle
-from feature_extraction import *
+from feature_extraction import feature_extraction
 
-chunk_size = 30
-overlap = 5
+chunk_size = 30  # seconds
+overlap = 5  # seconds
+
 
 def load_model(model_path):
     with open(model_path, 'rb') as f:
-        model = pickle.load(f)
-        return model
+        return pickle.load(f)
 
-def get_chunk_intervals(file_path):
+
+def predict_chunk(model, y_chunk, sr):
     try:
-        y, sr = librosa.load(file_path)
-        total_duration = librosa.get_duration(y =y, sr =sr)
-        step = chunk_size - overlap
+        features = feature_extraction(y_chunk, sr)
+        if features is None:
+            return None
 
-        chunk_times = []
-        for i in np.arange(0, total_duration, step):
-            chunk_times.append( (i, i + chunk_size) )
+        # Wrap dictionary in a list so pandas creates a valid 1-row DataFrame
+        df = pd.DataFrame([features])
 
-        return chunk_times
-
+        result = model.predict(df)
+        return result[0]
     except Exception as e:
-        print(f'Error loading file: {e}')
+        print(f'Error predicting chunk: {e}')
         return None
 
-def get_chunks(file_path, start_time):
-    try:
-        y, sr = librosa.load(file_path, offset = start_time, duration = 30)
-
-        '''
-        in feature_extraction.py, chroma.stft() expects chunk of at least 2048 samples.
-        so we need to make sure chunk is of size >= 2048
-        '''
-        if y is None or len(y)<2048:
-            return None, None
-
-        return y, sr
-    except Exception as e:
-        print(f'Error loading file: {e}')
-        return None, None
-
-def predict_chunk(model_path, y, sr):
-    try:
-        features = feature_extraction(y, sr)
-        if features is None:
-            print("Feature extraction returned None")
-            return None
-        features = pd.DataFrame(features)
-        model = load_model(model_path)
-        result = model.predict(features)
-        return result[0]
-
-    except Exception as e:
-        print(f'Error predicting chunks: {e}')
-        return 1
 
 def get_most_common_genre(predictions):
-    count_genre = {}
-    most_common = None
-    max_count = 0
-
-    for genre in predictions:
-        if genre in count_genre:
-            count_genre[genre] +=1
-        else:
-            count_genre[genre] = 1
-
-    for (genre, count) in count_genre.items():
-        if count > max_count:
-            max_count = count
-            most_common = genre
-
-    return most_common
-
-def analyze_audio_file(model_path, file_path):
-    y, sr = librosa.load(file_path)
-    total_duration = librosa.get_duration(y=y, sr=sr)
-
-    #if file is itself of duration chunk_size, no need to divide it into chunks
-    if total_duration <= (chunk_size+1):
-        return predict_chunk(model_path, y, sr)
-
-    chunk_times = get_chunk_intervals(file_path)
-
-    if chunk_times is None:
-        print('Error getting chunk intervals')
+    if not predictions:
         return None
 
+    count_genre = {}
+    for genre in predictions:
+        if genre is not None:
+            count_genre[genre] = count_genre.get(genre, 0) + 1
+
+    if not count_genre:
+        return None
+
+    return max(count_genre, key=count_genre.get)
+
+
+def analyze_audio_file(model_path, file_path):
+    try:
+        model = load_model(model_path)
+        # Load audio file ONCE into memory to prevent psf_fseek errors on MP3s
+        y, sr = librosa.load(file_path, sr=None)
+    except Exception as e:
+        print(f'Error loading audio file: {e}')
+        return None
+
+    total_samples = len(y)
+    chunk_samples = chunk_size * sr
+    step_samples = (chunk_size - overlap) * sr
+
+    # Evaluate the full signal if the track is shorter than or equal to chunk_size
+    if total_samples <= chunk_samples + sr:
+        return predict_chunk(model, y, sr)
+
     predictions = []
-    for (i, start) in chunk_times:
-        y, sr = get_chunks(file_path, start)
-        if y is None:
+
+    # Slice the loaded NumPy array directly in memory
+    for start_sample in range(0, total_samples, step_samples):
+        end_sample = start_sample + chunk_samples
+        chunk = y[start_sample:end_sample]
+
+        # Skip chunks that are too short for chroma feature extraction
+        if len(chunk) < 2048:
             continue
-        chunk_result = predict_chunk(model_path, y, sr)
-        predictions.append(chunk_result)
+
+        chunk_result = predict_chunk(model, chunk, sr)
+        if chunk_result is not None:
+            predictions.append(chunk_result)
 
     if not predictions:
         print("No valid predictions were made.")

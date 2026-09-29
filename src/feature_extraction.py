@@ -52,6 +52,7 @@ def feature_extraction(y, sr, n_mfcc = 13, n_chroma = 12):
 
         #tempo features
         tempo, _ = librosa.beat.beat_track(y=y, sr=sr)
+        tempo = float(np.mean(tempo))
         beat_strength = np.mean(librosa.onset.onset_strength(y=y, sr=sr))
 
         #rms features
