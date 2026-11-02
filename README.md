@@ -7,14 +7,13 @@ you upload. Upload a track and get the predicted genre, its confidence, the
 full probability distribution over 10 genres, a per-chunk timeline, and a
 spectrogram — all in a single-page dashboard.
 
-> **Live demo:** <https://music-genre-classifier.onrender.com> *(update this
-> URL after your first deploy — see [Deploy on Render](#deploy-on-render))*
+> **Live demo:** <https://music-genre-classifier-c3zh.onrender.com>
 
 ![Dashboard screenshot](docs/screenshot.png)
 
 ## Try it live
 
-Open the [live demo](https://music-genre-classifier.onrender.com), upload any
+Open the [live demo](https://music-genre-classifier-c3zh.onrender.com), upload any
 `.mp3`, `.wav`, `.flac`, `.ogg`, or `.m4a` file (or click **"Try a sample
 track"**), and it returns:
 
@@ -103,27 +102,6 @@ cross-validation scores:
 | Calibrated model | Accuracy | Macro F1 | Brier | Log loss |
 | --- | ---: | ---: | ---: | ---: |
 | SVM (RBF) + sigmoid | 0.703 | 0.690 | 0.527 | 1.087 |
-
-## Deploy on Render
-
-The repo ships a `render.yaml` Blueprint and a `Dockerfile`, so you can deploy
-in a couple of clicks:
-
-1. Push this repo to GitHub.
-2. In [Render](https://render.com), go to **New → Blueprint**, connect the repo,
-   and confirm. Render builds the `Dockerfile` and serves it at
-   `https://music-genre-classifier.onrender.com`.
-
-Alternatively, create a **Web Service** manually with **runtime: Docker** and
-health check path `/api/v1/health`.
-
-Notes:
-
-- The app binds to Render's injected `$PORT` automatically.
-- No Redis is required — the prediction cache falls back to an in-process LRU.
-  Set `REDIS_URL` only if you want a shared cache.
-- The free tier sleeps after ~15 min of inactivity, so the first request after
-  idle can take ~30–60 s to wake up.
 
 ## Training and evaluation
 
