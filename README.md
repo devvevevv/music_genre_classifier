@@ -1,4 +1,4 @@
-# 🎵 Music Genre Classifier
+# Music Genre Classifier
 
 [![CI](https://github.com/devvevevv/music_genre_classifier/actions/workflows/ci.yml/badge.svg)](https://github.com/devvevevv/music_genre_classifier/actions/workflows/ci.yml)
 
@@ -7,7 +7,7 @@ you upload. Upload a track and get the predicted genre, its confidence, the
 full probability distribution over 10 genres, a per-chunk timeline, and a
 spectrogram — all in a single-page dashboard.
 
-> 🚀 **Live demo:** <https://music-genre-classifier.onrender.com> *(update this
+> **Live demo:** <https://music-genre-classifier.onrender.com> *(update this
 > URL after your first deploy — see [Deploy on Render](#deploy-on-render))*
 
 ![Dashboard screenshot](docs/screenshot.png)
