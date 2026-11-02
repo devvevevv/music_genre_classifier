@@ -1,12 +1,17 @@
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.metrics import accuracy_score, classification_report
 import pickle
+import sys
+
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, classification_report
+from sklearn.model_selection import GridSearchCV, train_test_split
+
+from config import DATASET_DIR
 from process_data import *
 
-#hyperparameters are tuned using GridSearchCV, and the best model is saved to a file in the specified location
+
+# hyperparameters are tuned using GridSearchCV, and the best model is saved to a file in the specified location
 def train(dataset_path, model_save_path="model.pkl"):
-    print('Loading data...')
+    print("Loading data...")
     features_df, X, y = process_data(dataset_path)
 
     print("Splitting data into train and test sets...")
@@ -14,16 +19,16 @@ def train(dataset_path, model_save_path="model.pkl"):
 
     print("Training Random Forest classifier...")
     param_grid = {
-        'n_estimators': [200, 600],
-        'max_depth': [None, 20],
-        'min_samples_split': [2, 5],
-        'min_samples_leaf': [1, 2]
+        "n_estimators": [200, 600],
+        "max_depth": [None, 20],
+        "min_samples_split": [2, 5],
+        "min_samples_leaf": [1, 2],
     }
     grid_search = GridSearchCV(
-        RandomForestClassifier(class_weight='balanced', random_state=1),
+        RandomForestClassifier(class_weight="balanced", random_state=1),
         param_grid=param_grid,
         cv=5,
-        scoring='accuracy'
+        scoring="accuracy",
     )
 
     grid_search.fit(X_train, y_train)
@@ -31,19 +36,20 @@ def train(dataset_path, model_save_path="model.pkl"):
 
     y_pred = model.predict(X_test)
     accuracy = accuracy_score(y_test, y_pred)
-    print(f"Model accuracy: {accuracy*100:.3f}%")
+    print(f"Model accuracy: {accuracy * 100:.3f}%")
 
     print("\nClassification Report:")
     print(classification_report(y_test, y_pred))
 
-    #saving model to model_save_path
-    with open(model_save_path, 'wb') as file:
+    # saving model to model_save_path
+    with open(model_save_path, "wb") as file:
         pickle.dump(model, file)
     print(f"Model saved to {model_save_path}")
 
     return model, accuracy
 
+
 if __name__ == "__main__":
-    dataset_path = "/Users/devvk/music_genre_classifier/dataset/genres_original"
+    dataset_path = sys.argv[1] if len(sys.argv) > 1 else str(DATASET_DIR)
     model, accuracy = train(dataset_path)
     print("Model saved to disk")

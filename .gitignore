@@ -24,6 +24,23 @@ ENV/
 dataset/
 model.pkl
 *.pkl
+models/*.pkl
+# The trained production model is small (a few MB) and required at serve time,
+# so it is committed for deployment. Keep other pickles ignored.
+!models/model.pkl
+models/features.csv
+models/artifacts/
+
+# Tooling caches / coverage
+.coverage
+coverage.xml
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local environment
+.env
 
 # Jupyter
 .ipynb_checkpoints/

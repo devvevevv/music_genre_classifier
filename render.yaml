@@ -1,0 +1,17 @@
+# Render Blueprint: one-click deploy from the repo.
+# https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: music-genre-classifier
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: LOG_LEVEL
+        value: INFO
+      - key: MAX_UPLOAD_MB
+        value: "25"
+      # Optional: point REDIS_URL at a managed Redis for a shared cache.
+      # Leave unset to use the in-process LRU fallback (fine for a demo).
+      - key: REDIS_URL
+        value: ""

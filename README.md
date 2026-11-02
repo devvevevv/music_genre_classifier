@@ -1,117 +1,179 @@
-# Music Genre Classifier
-A machine learning-based system that predicts the genre of music from audio files using feature extraction and Random Forest classification.
+# 🎵 Music Genre Classifier
 
-## Overview
-This project implements an audio analysis system that extracts audio features from music files and uses a trained machine learning model to classify the genre. The system can handle both short audio clips and longer tracks by dividing them into overlapping chunks for more accurate genre prediction.
+[![CI](https://github.com/devvevevv/music_genre_classifier/actions/workflows/ci.yml/badge.svg)](https://github.com/devvevevv/music_genre_classifier/actions/workflows/ci.yml)
 
-## Features
+A machine-learning web app that predicts the **music genre** of any audio file
+you upload. Upload a track and get the predicted genre, its confidence, the
+full probability distribution over 10 genres, a per-chunk timeline, and a
+spectrogram — all in a single-page dashboard.
 
-- Automated genre classification of audio files
-- Support for processing both short clips and full-length tracks
-- Audio chunking with overlap for better prediction accuracy
-- Extensive audio feature extraction including:
-  - MFCCs (Mel-Frequency Cepstral Coefficients)
-  - Chromagrams (STFT and CQT-based)
-  - Zero Crossing Rate
-  - Spectral features (centroid, rolloff, contrast, flux, bandwidth)
-  - Tempo and beat features
-  - RMS energy
+> 🚀 **Live demo:** <https://music-genre-classifier.onrender.com> *(update this
+> URL after your first deploy — see [Deploy on Render](#deploy-on-render))*
 
-## Dataset
-This project uses the [GTZAN](https://www.kaggle.com/datasets/andradaolteanu/gtzan-dataset-music-genre-classification) dataset, which is widely used for music genre classification tasks. The dataset consists of 1000 audio tracks, each 30 seconds long, with 100 tracks per genre for 10 genres:
- - Blues
- - Classical
- - Country
- - Disco
- - Hip-hop
- - Jazz
- - Metal
- - Pop
- - Reggae
- - Rock
+![Dashboard screenshot](docs/screenshot.png)
 
-## Requirements
-- Python 3.7+
-- Libraries:
-  - pandas
-  - numpy
-  - librosa
-  - scikit-learn
-  - pickle
- 
-## Installation
-`
-git clone https://github.com/devvevevv/music_genre_classifier.git
-cd music-genre-classifier
-`
-### Install required packages
-`
-pip install pandas numpy librosa scikit-learn
-`
-## Usage
-### Training the model
-Edit the dataset_path in train.py to point to your dataset.
+## Try it live
 
-`
-python train.py
-`
-### Predicting Genre of an Audio File
-To predict the genre of an audio file:
+Open the [live demo](https://music-genre-classifier.onrender.com), upload any
+`.mp3`, `.wav`, `.flac`, `.ogg`, or `.m4a` file (or click **"Try a sample
+track"**), and it returns:
 
-`
-python main.py
-`
+- the predicted genre and confidence,
+- a ranked probability bar chart across all 10 genres,
+- a waveform and spectrogram,
+- a chunk timeline showing how the prediction varies across the track.
 
-When prompted, enter the path to your audio file. The program will analyze the file and output the predicted genre.
+## Run it locally
 
-## How It Works
+You need Python 3.10+ (or Docker). All commands run from the repository root.
 
-1. ### Feature Extraction:
-   The system extracts features from audio files using the librosa library.
-3. ### Audio Chunking:
-   For longer tracks, the audio is divided into 30-second chunks with 5-second overlap to capture different sections of the song.
-5. ### Classification:
-   A trained Random Forest classifier predicts the genre based on the extracted features.
-7. ### Consensus Prediction:
-   For chunked audio, the final genre is determined by taking the most common prediction across all chunks.
+### With Docker (easiest)
 
-## Project Structure
+```bash
+docker build -t music-genre-classifier .
+docker run -p 8000:8000 music-genre-classifier
+```
 
-1. `main.py`: Entry point for the application
-2. `feature_extraction.py`: Functions for extracting features from audio
-3. `chunks.py`: Handles dividing longer audio files into overlapping chunks (if audio is of length>=30s, predicts directly)
-4. `process_data.py`: Processes the dataset for training
-5. `train.py`: Trains the Random Forest classifier with hyperparameter tuning
+Then open <http://localhost:8000/>.
 
-## Model Training
-The classifier is a Random Forest model trained with GridSearchCV for hyperparameter optimization. The training process includes:
-1. Data splitting (train/test):
-   ![image](https://github.com/user-attachments/assets/1224dc73-0194-4e7f-b783-26f180dfbbe4)
+### With Python
 
-2. Hyperparameter tuning (number of estimators, max depth, min samples split/leaf):
-   ![image](https://github.com/user-attachments/assets/ce181aaf-8575-47a4-81a5-2441f052a512)
+```bash
+python -m venv venv
+source venv/bin/activate            # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn app.main:app --port 8000
+```
 
-3. Class balancing:
-   ![image](https://github.com/user-attachments/assets/8d90f115-67fd-4c21-ad4d-db08ac835ed8)
-   ![image](https://github.com/user-attachments/assets/609d6bfc-4858-4497-9666-fa9a3f42ffc0)
+Open <http://localhost:8000/>.
 
-4. Model evaluation with accuracy metrics and classification report:
-   ![image](https://github.com/user-attachments/assets/0e7b4536-9264-424b-88d0-36b702e7b60c)
-   ![image](https://github.com/user-attachments/assets/6f48e48e-3b98-4e88-bb56-b18d6ec69609)
-   ![image](https://github.com/user-attachments/assets/d5f4619c-3b25-461c-a62b-276c9ff779d5)
+## API
 
-## Feeding songs to model
-![image](https://github.com/user-attachments/assets/811318d9-0d06-4918-9dd7-b6ace9bab5cf)
-![image](https://github.com/user-attachments/assets/9256acad-6778-4b28-a079-a23daae6228b)
-![image](https://github.com/user-attachments/assets/3420b977-eb44-4769-9362-3f588d43f277)
-![image](https://github.com/user-attachments/assets/d7a07898-40d0-49e7-93ad-f4624655e0a1)
+The service is FastAPI; docs auto-generate at <http://localhost:8000/docs>.
 
-## Future Improvements 
-1. Implement deep learning approaches (CNNs, RNNs)
-2. Create a web interface for easier usage
-3. Optimize feature extraction for better performance
+| Method | Path | Description |
+| --- | --- | --- |
+| `POST` | `/api/v1/predict` | Upload an audio file, get the genre prediction |
+| `GET` | `/api/v1/health` | Liveness + model availability |
+| `GET` | `/api/v1/model/info` | Model manifest (version, classes, metrics) |
+| `GET` | `/api/v1/metrics/summary` | Cross-validated model comparison |
+| `GET` | `/metrics` | Prometheus metrics |
 
-## Industry Applications 
-1. Create a plugin for digital audio workstations to suggest genre-specific production techniques
-2. Build a similarity engine for copyright analysis and plagiarism detection
-3. Incorporate lyric analysis using NLP techniques for genres with distinctive lyrical patterns
+Classify a file from the command line:
+
+```bash
+curl -F "file=@test/sample/blackSabbathParanoid.mp3" http://localhost:8000/api/v1/predict
+```
+
+## How it works
+
+1. **Features** — librosa extracts 90 features per audio chunk: MFCCs, chroma
+   (both STFT and CQT), spectral centroid/rolloff/contrast/bandwidth/flux,
+   tempo, beat strength, and RMS.
+2. **Chunking** — long tracks are split into overlapping 30 s windows; short
+   clips are evaluated whole.
+3. **Prediction** — an SVM (RBF) wrapped in `CalibratedClassifierCV` returns a
+   calibrated probability per genre; per-chunk probabilities are averaged into
+   the final distribution.
+
+Genres: blues, classical, country, disco, hiphop, jazz, metal, pop, reggae, rock.
+
+## Results
+
+Models are compared with stratified 5-fold cross-validation on all 1000 GTZAN
+tracks (details in `models/metrics.json`).
+
+| Model | Accuracy | Macro F1 |
+| --- | ---: | ---: |
+| Dummy (most frequent) | 0.100 | 0.018 |
+| Logistic regression | 0.717 | 0.716 |
+| **SVM (RBF)** | **0.731** | **0.729** |
+| Random forest | 0.729 | 0.725 |
+| Histogram gradient boosting | 0.717 | 0.713 |
+
+Per-class F1 for the selected SVM (RBF):
+
+| blues | classical | country | disco | hiphop | jazz | metal | pop | reggae | rock |
+| ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 0.802 | 0.895 | 0.673 | 0.660 | 0.698 | 0.827 | 0.847 | 0.739 | 0.674 | 0.471 |
+
+The production model is the SVM wrapped in sigmoid calibration. Nested
+cross-validation scores:
+
+| Calibrated model | Accuracy | Macro F1 | Brier | Log loss |
+| --- | ---: | ---: | ---: | ---: |
+| SVM (RBF) + sigmoid | 0.703 | 0.690 | 0.527 | 1.087 |
+
+## Deploy on Render
+
+The repo ships a `render.yaml` Blueprint and a `Dockerfile`, so you can deploy
+in a couple of clicks:
+
+1. Push this repo to GitHub.
+2. In [Render](https://render.com), go to **New → Blueprint**, connect the repo,
+   and confirm. Render builds the `Dockerfile` and serves it at
+   `https://music-genre-classifier.onrender.com`.
+
+Alternatively, create a **Web Service** manually with **runtime: Docker** and
+health check path `/api/v1/health`.
+
+Notes:
+
+- The app binds to Render's injected `$PORT` automatically.
+- No Redis is required — the prediction cache falls back to an in-process LRU.
+  Set `REDIS_URL` only if you want a shared cache.
+- The free tier sleeps after ~15 min of inactivity, so the first request after
+  idle can take ~30–60 s to wake up.
+
+## Training and evaluation
+
+The dataset is [GTZAN](https://www.kaggle.com/datasets/andradaolteanu/gtzan-dataset-music-genre-classification),
+laid out as `dataset/genres_original/<genre>/*.wav` where the subdirectory name
+is the label (note `hiphop`, not `hip-hop`). Override the location with
+`DATASET_DIR`.
+
+```bash
+python -m eval.features    # 1. Extract features once (~6 min, parallel)
+python -m eval.evaluate    # 2. Compare models (5-fold CV) -> models/metrics.json
+python -m eval.train       # 3. Train + calibrate -> models/model.pkl + metadata.json
+```
+
+A pre-trained model ships in `models/`, so you normally do not need to retrain.
+
+## Testing and code quality
+
+```bash
+pip install -r requirements-dev.txt
+ruff check .            # lint
+ruff format --check .   # formatting
+mypy src app            # type check
+pytest --cov=src --cov=app
+```
+
+Tests use a synthetic tone and a tiny throwaway classifier (via the `MODEL_PATH`
+env var), so they run without the dataset or a trained model.
+
+## Project structure
+
+```
+src/                      # inference + feature extraction (flat modules)
+  predictor.py            #   predict() / predict_detailed()
+  feature_extraction.py   #   librosa feature extraction (90 features)
+  spectrogram.py          #   PNG spectrogram renderer
+  cache.py                #   Redis / in-process LRU prediction cache
+  config.py  settings.py  #   constants + .env settings
+app/                      # FastAPI service + dashboard
+  main.py  schemas.py  observability.py
+  static/index.html       #   single-page dashboard
+  static/sample.wav       #   bundled public-domain demo clip
+eval/                     # experiment + production training package
+tests/                    # pytest suite (synthetic fixtures)
+models/                   # model.pkl + metadata.json + metrics.json (committed)
+Dockerfile  render.yaml  docker-compose.yml
+```
+
+## Credits
+
+- **Sample clip:** Beethoven, *32 Variations in C Minor*, WoO 80 — public
+  domain, sourced from [Wikimedia Commons](https://commons.wikimedia.org/).
+- **Dataset:** [GTZAN](https://www.kaggle.com/datasets/andradaolteanu/gtzan-dataset-music-genre-classification).

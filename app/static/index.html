@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Music Genre Classifier</title>
+  <style>
+    :root {
+      --bg: #0f1220; --panel: #1a1e33; --panel-2: #232846;
+      --accent: #7c9cff; --text: #e8ebf7; --muted: #9aa3c7; --good: #52d49a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; padding: 40px 20px; color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: radial-gradient(1200px 600px at 50% -10%, #1b2140, var(--bg));
+    }
+    .wrap { max-width: 940px; margin: 0 auto; }
+    h1 { margin: 0 0 4px; font-size: 28px; }
+    .sub { color: var(--muted); margin-bottom: 6px; font-size: 14px; }
+    .panel {
+      background: var(--panel); border: 1px solid #2c3358; border-radius: 14px;
+      padding: 22px; margin-bottom: 20px;
+    }
+    #drop {
+      border: 2px dashed #3a4270; border-radius: 12px; padding: 34px 20px;
+      text-align: center; color: var(--muted); cursor: pointer;
+      transition: border-color .15s, background .15s;
+    }
+    #drop.drag { border-color: var(--accent); background: var(--panel-2); }
+    #drop strong { color: var(--text); }
+    #file { display: none; }
+    .row { display: flex; gap: 12px; align-items: center; margin-top: 16px; flex-wrap: wrap; }
+    button {
+      background: var(--accent); color: #0d1020; border: 0; border-radius: 10px;
+      padding: 11px 20px; font-weight: 600; font-size: 15px; cursor: pointer;
+    }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    button.ghost {
+      background: transparent; color: var(--accent); border: 1px solid #3a4270;
+    }
+    button.ghost:hover { border-color: var(--accent); }
+    .filename { color: var(--muted); font-size: 14px; }
+    .foot { margin-top: 26px; text-align: center; color: var(--muted); font-size: 13px; }
+    .foot a { color: var(--accent); text-decoration: none; }
+    .foot a:hover { text-decoration: underline; }
+    .foot-note { text-align: center; color: var(--muted); font-size: 12px; margin-top: 8px; opacity: .75; }
+    .spinner {
+      width: 16px; height: 16px; border-radius: 50%; display: inline-block;
+      border: 2px solid rgba(255,255,255,.25); border-top-color: var(--text);
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .error { color: #ff8a8a; }
+    .hidden { display: none; }
+    .top { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+    .top .genre { font-size: 34px; font-weight: 700; text-transform: capitalize; }
+    .top .conf { color: var(--good); font-weight: 600; }
+    .badges { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .badge {
+      font-size: 12px; color: var(--muted); background: var(--panel-2);
+      border: 1px solid #2c3358; border-radius: 999px; padding: 4px 10px;
+    }
+    .badge.hit { color: var(--good); border-color: #2f6b52; }
+    h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 14px; }
+    .bar { display: grid; grid-template-columns: 96px 1fr 52px; gap: 10px; align-items: center; margin-bottom: 8px; font-size: 14px; }
+    .bar .label { text-transform: capitalize; color: var(--muted); }
+    .bar.top3 .label { color: var(--text); font-weight: 600; }
+    .track { background: var(--panel-2); border-radius: 6px; height: 16px; overflow: hidden; }
+    .fill { height: 100%; border-radius: 6px; background: linear-gradient(90deg, #4666e0, var(--accent)); }
+    .bar .pct { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .timeline { position: relative; height: 40px; background: var(--panel-2); border-radius: 8px; overflow: hidden; }
+    .seg { position: absolute; top: 0; height: 100%; opacity: .85; border-right: 1px solid rgba(0,0,0,.35); }
+    .seg:hover { opacity: 1; }
+    .axis { display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; margin-top: 6px; }
+    .chunk-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-top: 14px; }
+    .chunk {
+      background: var(--panel-2); border-radius: 8px; padding: 8px 10px; font-size: 12px;
+      border-left: 3px solid var(--accent);
+    }
+    .chunk .cg { text-transform: capitalize; font-weight: 600; }
+    .chunk .ct { color: var(--muted); font-variant-numeric: tabular-nums; }
+    img, canvas { width: 100%; border-radius: 10px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>🎵 Music Genre Classifier</h1>
+    <div class="sub">Upload an audio file to predict its genre.</div>
+    <div class="sub" id="model-meta"></div>
+
+    <div class="panel">
+      <div id="drop">
+        <div><strong>Click to choose</strong> or drag an audio file here</div>
+        <div style="font-size:13px;margin-top:6px">.wav · .mp3 · .flac · .ogg · .m4a</div>
+      </div>
+      <input id="file" type="file" accept="audio/*" />
+      <div class="row">
+        <button id="go" disabled>Analyze</button>
+        <button id="sample" class="ghost">Try a sample track</button>
+        <span class="filename" id="name"></span>
+        <span id="status"></span>
+      </div>
+    </div>
+
+    <div class="panel hidden" id="result">
+      <h2>Prediction</h2>
+      <div class="top">
+        <span class="genre" id="top-genre"></span>
+        <span class="conf" id="top-conf"></span>
+      </div>
+      <div class="badges" id="badges"></div>
+    </div>
+
+    <div class="panel hidden" id="wave-panel">
+      <h2>Waveform</h2>
+      <canvas id="wave" height="90"></canvas>
+    </div>
+
+    <div class="panel hidden" id="chart-panel">
+      <h2>Genre probabilities</h2>
+      <div id="chart"></div>
+    </div>
+
+    <div class="panel hidden" id="timeline-panel">
+      <h2>Chunk timeline</h2>
+      <div class="timeline" id="timeline"></div>
+      <div class="axis"><span>0:00</span><span id="axis-end"></span></div>
+      <div class="chunk-grid" id="chunk-grid"></div>
+    </div>
+
+    <div class="panel hidden" id="spec-panel">
+      <h2>Spectrogram</h2>
+      <img id="spectrogram" alt="Spectrogram" />
+    </div>
+
+    <footer class="foot">
+      Built with FastAPI · scikit-learn · librosa —
+      <a href="https://github.com/devvevevv/music_genre_classifier" target="_blank" rel="noopener">source on GitHub</a>
+    </footer>
+    <div class="foot-note">
+      Sample clip: Beethoven, <em>32 Variations in C Minor</em>, WoO 80 (public domain, Wikimedia Commons).
+    </div>
+  </div>
+
+  <script>
+    const GENRE_COLORS = {
+      blues: "#3b82f6", classical: "#a855f7", country: "#f59e0b", disco: "#ec4899",
+      hiphop: "#ef4444", jazz: "#14b8a6", metal: "#94a3b8", pop: "#f43f5e",
+      reggae: "#22c55e", rock: "#eab308",
+    };
+    const color = g => GENRE_COLORS[g] || "#7c9cff";
+    const mmss = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+
+    const $ = id => document.getElementById(id);
+    const drop = $("drop"), input = $("file"), go = $("go"), nameEl = $("name"), statusEl = $("status");
+    const panels = ["result", "wave-panel", "chart-panel", "timeline-panel", "spec-panel"].map($);
+    let selected = null;
+
+    fetch("/api/v1/model/info")
+      .then(r => r.ok ? r.json() : null)
+      .then(info => {
+        if (!info) return;
+        const m = info.metrics || {};
+        const parts = [`model v${info.version}`, info.model_type];
+        if (m.accuracy != null) parts.push(`${(m.accuracy * 100).toFixed(1)}% CV accuracy`);
+        if (m.macro_f1 != null) parts.push(`${(m.macro_f1 * 100).toFixed(1)}% macro F1`);
+        $("model-meta").textContent = parts.join(" · ");
+      })
+      .catch(() => {});
+
+    function choose(file) {
+      selected = file;
+      nameEl.textContent = file ? `${file.name} (${(file.size / 1024 / 1024).toFixed(1)} MB)` : "";
+      go.disabled = !file;
+      statusEl.textContent = ""; statusEl.className = "";
+      panels.forEach(p => p.classList.add("hidden"));
+      if (file) previewWaveform(file);
+    }
+
+    drop.addEventListener("click", () => input.click());
+    input.addEventListener("change", () => choose(input.files[0]));
+    ["dragenter", "dragover"].forEach(e => drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.add("drag"); }));
+    ["dragleave", "drop"].forEach(e => drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.remove("drag"); }));
+    drop.addEventListener("drop", ev => { if (ev.dataTransfer.files.length) choose(ev.dataTransfer.files[0]); });
+
+    function setStatus(html, isError = false) {
+      statusEl.innerHTML = html; statusEl.className = isError ? "error" : "";
+    }
+
+    async function previewWaveform(file) {
+      try {
+        const buf = await file.arrayBuffer();
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const audio = await ctx.decodeAudioData(buf.slice(0));
+        drawWaveform(audio);
+      } catch (_) { /* waveform is best-effort */ }
+    }
+
+    function drawWaveform(audioBuffer) {
+      const canvas = $("wave");
+      const dpr = window.devicePixelRatio || 1;
+      const w = canvas.clientWidth, h = 90;
+      canvas.width = w * dpr; canvas.height = h * dpr;
+      const g = canvas.getContext("2d");
+      g.scale(dpr, dpr);
+      const data = audioBuffer.getChannelData(0);
+      const step = Math.floor(data.length / w);
+      g.fillStyle = "#7c9cff";
+      for (let x = 0; x < w; x++) {
+        let min = 1, max = -1;
+        for (let i = 0; i < step; i++) {
+          const v = data[x * step + i] || 0;
+          if (v < min) min = v; if (v > max) max = v;
+        }
+        const y1 = (1 + min) * h / 2, y2 = (1 + max) * h / 2;
+        g.fillRect(x, y1, 1, Math.max(1, y2 - y1));
+      }
+      $("wave-panel").classList.remove("hidden");
+    }
+
+    go.addEventListener("click", async () => {
+      if (!selected) return;
+      go.disabled = true;
+      setStatus('<span class="spinner"></span> Analyzing…');
+      panels.forEach(p => p.classList.add("hidden"));
+      const body = new FormData();
+      body.append("file", selected);
+      try {
+        const res = await fetch("/api/v1/predict", { method: "POST", body });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Prediction failed");
+        render(data);
+        setStatus("");
+      } catch (err) {
+        setStatus(err.message, true);
+      } finally {
+        go.disabled = false;
+      }
+    });
+
+    $("sample").addEventListener("click", async () => {
+      setStatus('<span class="spinner"></span> Loading sample…');
+      try {
+        const res = await fetch("/static/sample.wav");
+        if (!res.ok) throw new Error("Sample clip not found");
+        const blob = await res.blob();
+        choose(new File([blob], "sample.wav", { type: "audio/wav" }));
+        go.click();
+      } catch (err) {
+        setStatus(err.message, true);
+      }
+    });
+
+    function badges(data) {
+      const b = $("badges"); b.innerHTML = "";
+      const items = [
+        `latency ${data.latency_ms} ms`,
+        data.cached ? "cache hit" : "cache miss",
+        `duration ${mmss(data.duration)}`,
+        `${data.n_chunks} chunk${data.n_chunks === 1 ? "" : "s"}`,
+      ];
+      items.forEach((t, i) => {
+        const el = document.createElement("span");
+        el.className = "badge" + (i === 1 && data.cached ? " hit" : "");
+        el.textContent = t; b.appendChild(el);
+      });
+    }
+
+    function render(data) {
+      $("top-genre").textContent = data.genre;
+      $("top-conf").textContent = `${(data.confidence * 100).toFixed(1)}% confidence`;
+      badges(data);
+      $("result").classList.remove("hidden");
+
+      const chart = $("chart"); chart.innerHTML = "";
+      const entries = Object.entries(data.probabilities);
+      entries.forEach(([genre, p], i) => {
+        const row = document.createElement("div");
+        row.className = "bar" + (i < 3 ? " top3" : "");
+        row.innerHTML =
+          `<div class="label">${genre}</div>` +
+          `<div class="track"><div class="fill" style="width:${(p * 100).toFixed(1)}%;background:${color(genre)}"></div></div>` +
+          `<div class="pct">${(p * 100).toFixed(1)}%</div>`;
+        chart.appendChild(row);
+      });
+      $("chart-panel").classList.remove("hidden");
+
+      const tl = $("timeline"); tl.innerHTML = "";
+      $("axis-end").textContent = mmss(data.duration);
+      data.chunks.forEach(c => {
+        const seg = document.createElement("div");
+        seg.className = "seg";
+        seg.style.left = (c.start / data.duration * 100) + "%";
+        seg.style.width = ((c.end - c.start) / data.duration * 100) + "%";
+        seg.style.background = color(c.genre);
+        seg.title = `${mmss(c.start)}–${mmss(c.end)} · ${c.genre} ${(c.confidence * 100).toFixed(0)}%`;
+        tl.appendChild(seg);
+      });
+      const grid = $("chunk-grid"); grid.innerHTML = "";
+      data.chunks.forEach(c => {
+        const el = document.createElement("div");
+        el.className = "chunk"; el.style.borderLeftColor = color(c.genre);
+        el.innerHTML = `<div class="ct">#${c.index + 1} · ${mmss(c.start)}–${mmss(c.end)}</div>` +
+          `<div class="cg">${c.genre} · ${(c.confidence * 100).toFixed(0)}%</div>`;
+        grid.appendChild(el);
+      });
+      $("timeline-panel").classList.remove("hidden");
+
+      $("spectrogram").src = data.spectrogram;
+      $("spec-panel").classList.remove("hidden");
+    }
+
+    // Deep link: append "?sample=1" to auto-run the bundled sample on load.
+    if (new URLSearchParams(location.search).get("sample") === "1") {
+      $("sample").click();
+    }
+  </script>
+</body>
+</html>
